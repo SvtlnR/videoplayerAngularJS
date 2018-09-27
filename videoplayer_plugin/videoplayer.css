@@ -1,0 +1,25 @@
+.plugin_videoplayer {
+	display: inline-block;
+}
+.controls_videoplayer {
+	margin-top: 0;
+	background-color: #000000;
+	color: #ffffff;
+	width: 100%;
+}
+.playBtn, .stopBtn, .sound {
+	text-align: center;
+	width: 20px;
+	display: inline-block;
+	padding: 1% 0.5%;
+	cursor: pointer;
+}
+.volume, .rewind {
+	vertical-align: middle;
+}
+.volume {
+	width: 10%;
+}
+.rewind {
+	width: 48%;
+}

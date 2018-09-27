@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html ng-app="videoApp">
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<style type="text/css">
+	   .firstCol {
+	       width: 500px;
+	       float:left;
+	   }
+	   .secondCol {
+	       width: 400px;
+	       float:left;
+	   }
+	</style>
+</head>
+<body>
+	<videoplayer video-src="focus.mp4" video-width="500"></videoplayer>
+	<videoplayer video-src="focus.mp4" video-width="400" autoplay muted></videoplayer>
+	<div class="firstCol">
+		<ul>
+			<li style="list-style: none">Using .videoPlayer()</li>
+			<li>Video starts playing after clicking on play button;</li>
+			<li>maximum volume.</li>
+		</ul>
+	</div>
+	<div class="secondCol">
+		<ul>
+			<li style="list-style: none">Using .videoPlayer({autoplay:true, muted:true})</li>
+			<li>Video starts playing automatically as soon as page is loaded;</li>
+			<li>video is muted.</li>
+		</ul>
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+	<script src="./videoplayer_plugin/videoplayer.js">
+	</script> 
+</body>
+</html>

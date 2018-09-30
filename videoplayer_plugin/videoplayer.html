@@ -1,0 +1,30 @@
+<div class="plugin_videoplayer">
+	<video class="videoplayer" src="{{videoSrc}}" width="{{videoWidth}}">
+	</video>
+	<div class="controls_videoplayer" style="width: {{videoWidth}}px;">
+		<div class="playBtn" ng-click="playPause()">
+			<i class="fas fa-pause" ng-show="!paused">
+			</i>
+			<i class="fas fa-play" ng-show="paused">
+			</i>
+		</div>
+		<div class="stopBtn" ng-click="stopV()">
+			<i class="fas fa-stop">
+			</i>
+		</div>
+		<span class="timer">
+			{{timer}}
+		</span>
+		<input type="range" step="0.1" min="0" max="100" value="0" class="rewind" ng-model="rewind" ng-click="rewindVideo()"/>
+		<span class="duration">
+			{{duration}}
+		</span>
+		<div class="sound" ng-click="soundOnOff()">
+			<i class="fas fa-volume-up" ng-show="soundOn">
+			</i>
+			<i class="fas fa-volume-off" ng-show="!soundOn">
+			</i>
+		</div>
+		<input type="range" step="0.1" min="0" max="1" value="1" class="volume" ng-model="volume" ng-change="changeVolume()" />
+	</div>
+</div>

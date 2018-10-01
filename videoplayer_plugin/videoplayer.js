@@ -17,6 +17,7 @@ angular.module('videoApp', []).directive('videoplayer', function() {
       var video = angular.element(element.children()[0]).children()[0];
       if (scope.autoplay !== undefined) {
         playVideo(video);
+        video.autoplay=true;
       }
       if (scope.muted !== undefined) {
         setVolume(0);
@@ -48,6 +49,7 @@ angular.module('videoApp', []).directive('videoplayer', function() {
 
       function playVideo(curVideo) {
         scope.paused = false;
+        console.log(scope.duration);
         curVideo.play();
       }
 

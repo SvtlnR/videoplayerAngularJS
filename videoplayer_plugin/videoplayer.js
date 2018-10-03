@@ -14,7 +14,7 @@ angular.module('videoApp', []).directive('videoplayer', function() {
       scope.volume = 1;
       scope.paused = true;
       scope.soundOn = true;
-      var video = angular.element(element.children()[0]).children()[0];
+      var video=element.find("video")[0];
       if (scope.autoplay !== undefined) {
         playVideo(video);
         video.autoplay=true;
@@ -49,7 +49,6 @@ angular.module('videoApp', []).directive('videoplayer', function() {
 
       function playVideo(curVideo) {
         scope.paused = false;
-        console.log(scope.duration);
         curVideo.play();
       }
 
@@ -57,7 +56,7 @@ angular.module('videoApp', []).directive('videoplayer', function() {
         scope.paused = true;
         curVideo.pause();
       }
-      scope.stopV = function() {
+      scope.stopPlaying = function() {
         stopVideo(video);
       }
       angular.element(video).on("timeupdate", function(event) {

@@ -15,11 +15,11 @@ angular.module('videoApp', []).directive('videoplayer', function() {
       scope.paused = true;
       scope.soundOn = true;
       var video=element.find("video")[0];
-      if (scope.autoplay !== undefined) {
+      if (!angular.isUndefined(scope.autoplay)) {
         playVideo(video);
         video.autoplay=true;
       }
-      if (scope.muted !== undefined) {
+      if (!angular.isUndefined(scope.muted)) {
         setVolume(0);
       }
       scope.soundOnOff = function() {

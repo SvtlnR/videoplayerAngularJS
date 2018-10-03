@@ -1,4 +1,30 @@
-angular.module('videoApp', []).directive('videoplayer', function() {
+var videoApp=angular.module('videoApp', []);
+videoApp.factory("videoplayerService", function(){
+  //var video="";
+  var curTime=0;
+  var curVol=0;
+  return{
+    // setVideo: function(_video){
+    //   video=_video;
+    // },
+    setCurTime: function(_curTime){
+      curTime=_curTime;
+    },
+   setCurVol: function(_curVol){
+      curVol=_curVol;
+    },
+    // getVideo:function(){
+    //   return video;
+    // },
+    getCurTime:function(){
+      return curTime;
+    },
+    getCurVol:function(){
+      return curVol;
+    }
+  }
+});
+videoApp.directive('videoplayer',["videoplayerService",function(videoplayerService) {
   return {
     restrict: 'E',
     scope: {
@@ -15,12 +41,16 @@ angular.module('videoApp', []).directive('videoplayer', function() {
       scope.paused = true;
       scope.soundOn = true;
       var video = angular.element(element.children()[0]).children()[0];
+      videoplayerService.setCurVol(1);
+      videoplayerService.setCurTime(0);
+      videoplayerService.getCurVol();
       if (scope.autoplay !== undefined) {
         playVideo(video);
         video.autoplay=true;
       }
       if (scope.muted !== undefined) {
         setVolume(0);
+        //videoplayerService.setCurVol(0);
       }
       scope.soundOnOff = function() {
         scope.soundOn = !scope.soundOn;
@@ -49,7 +79,6 @@ angular.module('videoApp', []).directive('videoplayer', function() {
 
       function playVideo(curVideo) {
         scope.paused = false;
-        console.log(scope.duration);
         curVideo.play();
       }
 
@@ -92,6 +121,7 @@ angular.module('videoApp', []).directive('videoplayer', function() {
 
       function setVolume(curVolume) {
         video.volume = curVolume;
+        videoplayerService.setCurVol(curVolume);
         if (curVolume > 0) {
           scope.soundOn = true;
           scope.volume = curVolume;
@@ -108,4 +138,4 @@ angular.module('videoApp', []).directive('videoplayer', function() {
     },
     templateUrl: "videoplayer_plugin/videoplayer.html"
   }
-});
+}]);

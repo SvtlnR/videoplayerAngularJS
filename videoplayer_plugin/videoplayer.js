@@ -1,30 +1,23 @@
-var videoApp=angular.module('videoApp', []);
-videoApp.factory("videoplayerService", function(){
-  //var video="";
-  var curTime=0;
-  var curVol=0;
-  return{
-    // setVideo: function(_video){
-    //   video=_video;
-    // },
-    setCurTime: function(_curTime){
-      curTime=_curTime;
+var videoApp = angular.module('videoApp', []);
+videoApp.factory("videoplayerService", function() {
+  var curTime = -1;
+  var curVol = -1;
+  return {
+    setCurTime: function(_curTime) {
+      curTime = _curTime;
     },
-   setCurVol: function(_curVol){
-      curVol=_curVol;
+    setCurVol: function(_curVol) {
+      curVol = _curVol;
     },
-    // getVideo:function(){
-    //   return video;
-    // },
-    getCurTime:function(){
+    getCurTime: function() {
       return curTime;
     },
-    getCurVol:function(){
+    getCurVol: function() {
       return curVol;
     }
   }
 });
-videoApp.directive('videoplayer',["videoplayerService",function(videoplayerService) {
+videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerService) {
   return {
     restrict: 'E',
     scope: {
@@ -34,23 +27,28 @@ videoApp.directive('videoplayer',["videoplayerService",function(videoplayerServi
       muted: '@'
     },
     link: function(scope, element, attrs) {
-      scope.rewind = 0;
+      console.log(videoplayerService.getCurVol());
       scope.duration = "00:00";
       scope.timer = "00:00";
-      scope.volume = 1;
       scope.paused = true;
       scope.soundOn = true;
-      var video = angular.element(element.children()[0]).children()[0];
-      videoplayerService.setCurVol(1);
-      videoplayerService.setCurTime(0);
-      videoplayerService.getCurVol();
-      if (scope.autoplay !== undefined) {
-        playVideo(video);
-        video.autoplay=true;
+      var video = element.find("video")[0];
+      if (videoplayerService.getCurTime() === -1) {
+        videoplayerService.setCurVol(1);
+        videoplayerService.setCurTime(0);
+        if (scope.autoplay !== undefined) {
+          playVideo(video);
+          video.autoplay = true;
+        }
+        if (scope.muted !== undefined) {
+          setVolume(0);
+          videoplayerService.setCurVol(0);
+        }
+        scope.rewind = 0;
       }
-      if (scope.muted !== undefined) {
-        setVolume(0);
-        //videoplayerService.setCurVol(0);
+      else{
+        setVolume(videoplayerService.getCurVol())
+        scope.rewind = videoplayerService.getCurTime(); 
       }
       scope.soundOnOff = function() {
         scope.soundOn = !scope.soundOn;
@@ -86,7 +84,7 @@ videoApp.directive('videoplayer',["videoplayerService",function(videoplayerServi
         scope.paused = true;
         curVideo.pause();
       }
-      scope.stopV = function() {
+      scope.stopPlaying = function() {
         stopVideo(video);
       }
       angular.element(video).on("timeupdate", function(event) {

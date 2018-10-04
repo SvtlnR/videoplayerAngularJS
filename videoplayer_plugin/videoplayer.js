@@ -1,19 +1,31 @@
 var videoApp = angular.module('videoApp', []);
-videoApp.factory("videoplayerService", function() {
-  var curTime = -1;
-  var curVol = -1;
+videoApp.factory("videoplayerService", function(){
+  var videos=[];
   return {
-    setCurTime: function(_curTime) {
-      curTime = _curTime;
+    setCurTime: function(id,_curTime) {
+      videos.find(x=>x.id===id).curTime=_curTime;
     },
-    setCurVol: function(_curVol) {
-      curVol = _curVol;
+    setCurVol: function(id,_curVol) {
+      videos.find(x=>x.id===id).curVol=_curVol;
     },
-    getCurTime: function() {
-      return curTime;
+    getCurTime: function(id) {
+      return videos.find(x=>x.id===id).curTime;
     },
-    getCurVol: function() {
-      return curVol;
+    getCurVol: function(id) {
+      return videos.find(x=>x.id===id).curVol;
+    },
+    getVideos:function(){
+      return videos;
+    },
+    isSet:function(id){
+      return videos.find(x=>x.id===id);
+    },
+    addVideo:function(_id){
+      videos.push({
+        id:_id,
+        curTime:undefined,
+        curVolume:undefined
+      });
     }
   }
 });
@@ -27,28 +39,28 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
       muted: '@'
     },
     link: function(scope, element, attrs) {
-      console.log(videoplayerService.getCurVol());
+      var video = element.find("video")[0];
+      var id=generateId(videoplayerService);
+      scope.videoId=id;
       scope.duration = "00:00";
       scope.timer = "00:00";
       scope.paused = true;
       scope.soundOn = true;
-      var video = element.find("video")[0];
-      if (videoplayerService.getCurTime() === -1) {
-        videoplayerService.setCurVol(1);
-        videoplayerService.setCurTime(0);
-        if (scope.autoplay !== undefined) {
+      if (angular.isUndefined(videoplayerService.getCurTime(id))) {
+        setVolume(1);
+        scope.rewind = 0;
+        videoplayerService.setCurTime(id,0);
+        if (!angular.isUndefined(scope.autoplay)) {
           playVideo(video);
           video.autoplay = true;
         }
-        if (scope.muted !== undefined) {
+        if (!angular.isUndefined(scope.muted)) {
           setVolume(0);
-          videoplayerService.setCurVol(0);
         }
-        scope.rewind = 0;
-      }
-      else{
-        setVolume(videoplayerService.getCurVol())
-        scope.rewind = videoplayerService.getCurTime(); 
+      } else {
+        setVolume(videoplayerService.getCurVol(id));
+        scope.rewind = videoplayerService.getCurTime(id);
+        pauseVideo(video);
       }
       scope.soundOnOff = function() {
         scope.soundOn = !scope.soundOn;
@@ -88,6 +100,9 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
         stopVideo(video);
       }
       angular.element(video).on("timeupdate", function(event) {
+        if(this.currentTime-videoplayerService.getCurTime(id)>5){
+          videoplayerService.setCurTime(id,this.currentTime);
+        }
         onTrackedVideoFrame(this.currentTime, this.duration);
       });
 
@@ -119,7 +134,7 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
 
       function setVolume(curVolume) {
         video.volume = curVolume;
-        videoplayerService.setCurVol(curVolume);
+        videoplayerService.setCurVol(id,curVolume);
         if (curVolume > 0) {
           scope.soundOn = true;
           scope.volume = curVolume;
@@ -137,3 +152,13 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
     templateUrl: "videoplayer_plugin/videoplayer.html"
   }
 }]);
+function generateId(videoplayerService){
+  var id;
+  var set=0;
+  do{
+    id=Math.floor(Math.random()*100);
+    set=videoplayerService.isSet(id);
+  }while(set<0);
+  videoplayerService.addVideo(id);
+  return id;
+}

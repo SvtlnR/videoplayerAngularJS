@@ -1,31 +1,48 @@
 var videoApp = angular.module('videoApp', []);
-videoApp.factory("videoplayerService", function(){
-  var videos=[];
+videoApp.factory("videoplayerService", function($window) {
+  var arr = sessionStorage.getItem("videos");
+  var videos = arr ? JSON.parse(arr) : [];
   return {
-    setCurTime: function(id,_curTime) {
-      videos.find(x=>x.id===id).curTime=_curTime;
+    setCurTime: function(id, curTime) {
+      videos.find(x => x.id === id).data["curTime"] = curTime;
+      sessionStorage.setItem("videos", JSON.stringify(videos));
     },
-    setCurVol: function(id,_curVol) {
-      videos.find(x=>x.id===id).curVol=_curVol;
+    setCurDur: function(id, curDur) {
+      videos.find(x => x.id === id).data["curDur"] = curDur;
+      sessionStorage.setItem("videos", JSON.stringify(videos));
+    },
+    setCurVol: function(id, curVol) {
+      videos.find(x => x.id === id).data["curVol"] = curVol;
+      sessionStorage.setItem("videos", JSON.stringify(videos));
     },
     getCurTime: function(id) {
-      return videos.find(x=>x.id===id).curTime;
+      return videos.find(x => x.id === id).data["curTime"];
+    },
+    getCurDur: function(id) {
+      return videos.find(x => x.id === id).data["curDur"];
     },
     getCurVol: function(id) {
-      return videos.find(x=>x.id===id).curVol;
+      return videos.find(x => x.id === id).data["curVol"];
     },
-    getVideos:function(){
+    getVideo: function(id) {
+      return videos.find(x => x.id === id);
+    },
+    getVideos: function() {
       return videos;
     },
-    isSet:function(id){
-      return videos.find(x=>x.id===id);
+    isSet: function(id) {
+      return videos.find(x => x.id === id);
     },
-    addVideo:function(_id){
+    addVideo: function(id) {
       videos.push({
-        id:_id,
-        curTime:undefined,
-        curVolume:undefined
+        id: id,
+        data: {
+          curTime: undefined,
+          curVolume: undefined,
+          curDur: 0
+        }
       });
+      sessionStorage.setItem("videos", JSON.stringify(videos));
     }
   }
 });
@@ -40,16 +57,18 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
     },
     link: function(scope, element, attrs) {
       var video = element.find("video")[0];
-      var id=generateId(videoplayerService);
-      scope.videoId=id;
-      scope.duration = "00:00";
-      scope.timer = "00:00";
+      var id = "video_" + scope.$id;
+      scope.videoId = id;
       scope.paused = true;
       scope.soundOn = true;
-      if (angular.isUndefined(videoplayerService.getCurTime(id))) {
+      if (videoplayerService.getVideos().length === 0 || angular.isUndefined(videoplayerService.isSet(id))) {
+        scope.duration = "00:00";
+        scope.timer = "00:00";
+        videoplayerService.addVideo(id);
         setVolume(1);
         scope.rewind = 0;
-        videoplayerService.setCurTime(id,0);
+        videoplayerService.setCurTime(id, 0);
+        videoplayerService.setCurDur(id, 0);
         if (!angular.isUndefined(scope.autoplay)) {
           playVideo(video);
           video.autoplay = true;
@@ -58,8 +77,12 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
           setVolume(0);
         }
       } else {
+        pauseVideo(video);
         setVolume(videoplayerService.getCurVol(id));
-        scope.rewind = videoplayerService.getCurTime(id);
+        scope.timer = timeTransform(videoplayerService.getCurTime(id));
+        scope.duration = timeTransform(videoplayerService.getCurDur(id));
+        scope.rewind = videoplayerService.getCurTime(id) * 100 / videoplayerService.getCurDur(id);
+        video.currentTime = videoplayerService.getCurTime(id);
         pauseVideo(video);
       }
       scope.soundOnOff = function() {
@@ -100,41 +123,40 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
         stopVideo(video);
       }
       angular.element(video).on("timeupdate", function(event) {
-        if(this.currentTime-videoplayerService.getCurTime(id)>5){
-          videoplayerService.setCurTime(id,this.currentTime);
+        if (Math.abs(this.currentTime - videoplayerService.getCurTime(id)) > 5) {
+          videoplayerService.setCurTime(id, this.currentTime);
+        }
+        if (videoplayerService.getCurDur(id) === 0) {
+          videoplayerService.setCurDur(id, video.duration);
         }
         onTrackedVideoFrame(this.currentTime, this.duration);
       });
 
       function onTrackedVideoFrame(currentTime, duration) {
-        var currentmin = Math.trunc(currentTime / 60);
-        var currentsec = Math.trunc(currentTime - currentmin * 60);
         if (currentTime == duration) {
           stopVideo(video);
         }
+        scope.timer = timeTransform(currentTime);
+        scope.duration = timeTransform(duration);
+        scope.rewind = currentTime * 100 / duration;
+        scope.$apply();
+      }
+
+      function timeTransform(time) {
+        var currentmin = Math.trunc(time / 60);
+        var currentsec = Math.trunc(time - currentmin * 60);
         if (currentsec < 10) {
           currentsec = "0" + currentsec;
         }
         if (currentmin < 10) {
           currentmin = "0" + currentmin;
         }
-        scope.timer = currentmin + ":" + currentsec;
-        var durationMin = Math.trunc(duration / 60);
-        var durationSec = Math.trunc(duration - durationMin * 60);
-        if (durationMin < 10) {
-          durationMin = "0" + durationMin;
-        }
-        if (durationSec < 10) {
-          durationSec = "0" + durationSec;
-        }
-        scope.duration = durationMin + ":" + durationSec;
-        scope.rewind = currentTime * 100 / duration;
-        scope.$apply();
+        return currentmin + ":" + currentsec;
       }
 
       function setVolume(curVolume) {
         video.volume = curVolume;
-        videoplayerService.setCurVol(id,curVolume);
+        videoplayerService.setCurVol(id, curVolume);
         if (curVolume > 0) {
           scope.soundOn = true;
           scope.volume = curVolume;
@@ -152,13 +174,3 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
     templateUrl: "videoplayer_plugin/videoplayer.html"
   }
 }]);
-function generateId(videoplayerService){
-  var id;
-  var set=0;
-  do{
-    id=Math.floor(Math.random()*100);
-    set=videoplayerService.isSet(id);
-  }while(set<0);
-  videoplayerService.addVideo(id);
-  return id;
-}

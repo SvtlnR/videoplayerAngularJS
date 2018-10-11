@@ -105,12 +105,13 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
       } else {
         pauseVideo(video);
         setVolume(videoplayerService.getCurrentVolume(id));
+        var currentTime=videoplayerService.getCurrentTime(id);
         scope.timer = timeTransform(videoplayerService.getCurrentTime(id));
         scope.duration = timeTransform(videoplayerService.getCurrentDuration(id));
         var rewindValue=videoplayerService.getCurrentTime(id) * 100 / videoplayerService.getCurrentDuration(id);
         scope.rewind = isNaN(rewindValue)?0:rewindValue;
         video.addEventListener("loadedmetadata", function(){
-          video.currentTime = videoplayerService.getCurrentTime(id);
+          video.currentTime = currentTime;
         });
         pauseVideo(video);
       }
@@ -126,7 +127,6 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
       scope.playPause = function() {
         if (video.paused) {
           playVideo(video);
-          
         } else {
           pauseVideo(video);
         }

@@ -106,9 +106,9 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
         pauseVideo(video);
         setVolume(videoplayerService.getCurrentVolume(id));
         var currentTime=videoplayerService.getCurrentTime(id);
-        scope.timer = timeTransform(videoplayerService.getCurrentTime(id));
+        scope.timer = timeTransform(currentTime);
         scope.duration = timeTransform(videoplayerService.getCurrentDuration(id));
-        var rewindValue=videoplayerService.getCurrentTime(id) * 100 / videoplayerService.getCurrentDuration(id);
+        var rewindValue=currentTime * 100 / videoplayerService.getCurrentDuration(id);
         scope.rewind = isNaN(rewindValue)?0:rewindValue;
         video.addEventListener("loadedmetadata", function(){
           video.currentTime = currentTime;

@@ -4,28 +4,51 @@ videoApp.service("videoplayerService", function($window) {
   var videos = storedVideos ? JSON.parse(storedVideos) : [];
   var lastId = 0;
   this.setCurrentTime = function(id, currentTime) {
-    videos.find(x => x.id === id).data.currentTime = currentTime;
-    writeInStorage();
+    var video=this.getVideo(id);
+    if(!angular.isUndefined(video)){
+      video.data.currentTime=currentTime;
+      syncStorage();
+    }
   }
   this.setCurrentDuration = function(id, currentDuration) {
-    videos.find(x => x.id === id).data.currentDuration = currentDuration;
-    writeInStorage();
+    var video=this.getVideo(id);
+    if(!angular.isUndefined(video)){
+      video.data.currentDuration=currentDuration;
+      syncStorage();
+    }
   }
   this.setCurrentVolume = function(id, currentVolume) {
-    videos.find(x => x.id === id).data.currentVolume = currentVolume;
-    writeInStorage();
+    var video=this.getVideo(id);
+    if(!angular.isUndefined(video)){
+      video.data.currentVolume=currentVolume;
+      syncStorage();
+    }
   }
-  this.getCurrrentTime = function(id) {
-    return videos.find(x => x.id === id).data.currentTime;
+  this.getCurrentTime = function(id) {
+    var video=this.getVideo(id);
+    if(!angular.isUndefined(video)){
+      return video.data.currentTime;
+    }
+    return 0;
   }
   this.getCurrentDuration = function(id) {
-    return videos.find(x => x.id === id).data.currentDuration;
+    var video=this.getVideo(id);
+    if(!angular.isUndefined(video)){
+      return video.data.currentDuration;
+    }
+    return 0;
   }
   this.getCurrentVolume = function(id) {
-    return videos.find(x => x.id === id).data.currentVolume;
+    var video=this.getVideo(id);
+    if(!angular.isUndefined(video)){
+      return video.data.currentVolume;
+    }
+    return 0;
   }
   this.getVideo = function(id) {
-    return videos.find(x => x.id === id);
+    return videos.find(function(x){
+      return x.id === id; 
+    });
   }
   this.getVideos = function() {
     return videos;
@@ -39,13 +62,13 @@ videoApp.service("videoplayerService", function($window) {
         currentDuration: 0
       }
     });
-    writeInStorage();
+    syncStorage();
   }
-  this.generId = function() {
+  this.generateId = function() {
     return lastId++;
   }
 
-  function writeInStorage() {
+  function syncStorage() {
     sessionStorage.setItem("videos", JSON.stringify(videos));
   }
 });
@@ -60,7 +83,7 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
     },
     link: function(scope, element, attrs) {
       var video = element.find("video")[0];
-      var id = "video_" + videoplayerService.generId();
+      var id = "video_" + videoplayerService.generateId();
       scope.videoId = id;
       scope.paused = true;
       scope.soundOn = true;
@@ -82,12 +105,16 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
       } else {
         pauseVideo(video);
         setVolume(videoplayerService.getCurrentVolume(id));
-        scope.timer = timeTransform(videoplayerService.getCurrrentTime(id));
+        scope.timer = timeTransform(videoplayerService.getCurrentTime(id));
         scope.duration = timeTransform(videoplayerService.getCurrentDuration(id));
-        scope.rewind = videoplayerService.getCurrrentTime(id) * 100 / videoplayerService.getCurrentDuration(id);
-        video.currentTime = videoplayerService.getCurrrentTime(id);
+        var rewindValue=videoplayerService.getCurrentTime(id) * 100 / videoplayerService.getCurrentDuration(id);
+        scope.rewind = isNaN(rewindValue)?0:rewindValue;
+        video.addEventListener("loadedmetadata", function(){
+          video.currentTime = videoplayerService.getCurrentTime(id);
+        });
         pauseVideo(video);
       }
+      
       scope.soundOnOff = function() {
         scope.soundOn = !scope.soundOn;
         if (scope.soundOn) {
@@ -99,6 +126,7 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
       scope.playPause = function() {
         if (video.paused) {
           playVideo(video);
+          
         } else {
           pauseVideo(video);
         }
@@ -126,10 +154,10 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
         stopVideo(video);
       }
       angular.element(video).on("timeupdate", function(event) {
-        if (Math.abs(this.currentTime - videoplayerService.getCurrrentTime(id)) > 5) {
+        if (Math.abs(this.currentTime - videoplayerService.getCurrentTime(id)) > 5) {
           videoplayerService.setCurrentTime(id, this.currentTime);
         }
-        if (videoplayerService.getCurrentDuration(id) === 0) {
+        if (!videoplayerService.getCurrentDuration(id)) {
           videoplayerService.setCurrentDuration(id, video.duration);
         }
         onTrackedVideoFrame(this.currentTime, this.duration);
@@ -146,6 +174,9 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
       }
 
       function timeTransform(time) {
+        if(!time){
+          time=0;
+        }
         var currentmin = Math.trunc(time / 60);
         var currentsec = Math.trunc(time - currentmin * 60);
         if (currentsec < 10) {

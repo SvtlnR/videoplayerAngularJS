@@ -1,4 +1,4 @@
-<div class="plugin_videoplayer" style="width: {{videoWidth}}px;">
+<div class="plugin_videoplayer" ng-style="{'width': videoWidth + 'px'}">
 	<video class="videoplayer" data-id="{{videoId}}" ng-src="{{videoSrc}}" width="100%">
 	</video>
 	<div class="controls_videoplayer" >
@@ -10,12 +10,10 @@
 			<i class="fas fa-stop">
 			</i>
 		</button>
-		<span class="timer">
-			{{timer}}
+		<span class="timer" ng-bind="timer">
 		</span>
 		<input type="range" step="0.1" min="0" max="100" value="0" class="rewind" ng-model="rewind" ng-click="rewindVideo()"/>
-		<span class="duration">
-			{{duration}}
+		<span class="duration" ng-bind="duration">
 		</span>
 		<button class="sound" ng-click="soundOnOff()">
 			<i class="fas fa-volume-up" ng-show="soundOn">

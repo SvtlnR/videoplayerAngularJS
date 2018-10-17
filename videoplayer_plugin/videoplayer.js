@@ -43,8 +43,8 @@ videoApp.service("videoplayerService", function($window) {
     }
   }
   this.getVideo = function(id) {
-    for(var i=0;i<videos.length;i++){
-      if(videos[i].id===id){
+    for (var i = 0; i < videos.length; i++) {
+      if (videos[i].id === id) {
         return videos[i];
       }
     }
@@ -133,12 +133,18 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
       scope.changeVolume = function() {
         setVolume(scope.volume);
       }
-      scope.rewindVideo = function(rewindValue) {
-        angular.element(video).off("timeupdate");
+      scope.rewindVideo = function(slider) {
         pauseVideo(video);
-        var newTime = rewindValue * video.duration / 100;
-        video.currentTime = newTime;
+        angular.element(video).off("timeupdate");
+        angular.element(slider).on("mousemove", function(event) {
+          var newTime = scope.rewind * video.duration / 100;
+          scope.timer = timeTransform(newTime);
+          video.currentTime = newTime;
+        });
+      }
+      scope.playAfterRewind = function(slider) {
         playVideo(video);
+        angular.element(slider).off("mousemove");
         angular.element(video).on("timeupdate", function(event) {
           updateVideoInfo(this);
         });

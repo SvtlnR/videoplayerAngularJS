@@ -12,7 +12,7 @@
 		</button>
 		<span class="timer" ng-bind="timer">
 		</span>
-		<input type="range" step="0.1" min="0" max="100" value="0" class="rewind" ng-model="rewind" ng-click="rewindVideo($event.target.value)"/>
+		<input type="range" step="0.1" min="0" max="100" value="0" class="rewind" ng-model="rewind" ng-mousedown="rewindVideo($event.target)" ng-mouseup="playAfterRewind($event.target)"/>
 		<span class="duration" ng-bind="duration">
 		</span>
 		<button class="sound" ng-click="soundOnOff()">

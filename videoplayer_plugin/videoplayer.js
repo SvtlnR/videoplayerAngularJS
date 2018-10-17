@@ -29,26 +29,26 @@ videoApp.service("videoplayerService", function($window) {
     if (!angular.isUndefined(video)) {
       return video.data.currentTime;
     }
-    return 0;
   }
   this.getCurrentDuration = function(id) {
     var video = this.getVideo(id);
     if (!angular.isUndefined(video)) {
       return video.data.currentDuration;
     }
-    return 0;
   }
   this.getCurrentVolume = function(id) {
     var video = this.getVideo(id);
     if (!angular.isUndefined(video)) {
       return video.data.currentVolume;
     }
-    return 0;
   }
   this.getVideo = function(id) {
-    return videos.find(function(x) {
-      return x.id === id;
-    });
+    for(var i=0;i<videos.length;i++){
+      if(videos[i].id===id){
+        return videos[i];
+      }
+    }
+    return undefined;
   }
   this.getVideos = function() {
     return videos;
@@ -184,8 +184,8 @@ videoApp.directive('videoplayer', ["videoplayerService", function(videoplayerSer
         if (!time) {
           time = 0;
         }
-        var currentmin = Math.trunc(time / 60);
-        var currentsec = Math.trunc(time - currentmin * 60);
+        var currentmin = Math.floor(time / 60);
+        var currentsec = Math.floor(time - currentmin * 60);
         if (currentsec < 10) {
           currentsec = "0" + currentsec;
         }
